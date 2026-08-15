@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>URL Shortener</title>
+  <style>
+    :root { --bg:#0f1220; --card:#1b1f36; --accent:#00a0df; --text:#e8ebff; --muted:#9aa3c7; --err:#ff6b6b; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center;
+           font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); }
+    .brandbar { width:100%; display:flex; align-items:center; justify-content:space-between;
+                padding:16px 28px; border-bottom:1px solid #2c3358; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand .logo { height:30px; width:auto; }
+    .brand .name { font-size:16px; font-weight:700; letter-spacing:.3px; }
+    .nav a { color:var(--muted); text-decoration:none; font-size:14px; margin-left:18px; }
+    .nav a:hover, .nav a.active { color:var(--accent); }
+    .stage { flex:1; display:flex; align-items:center; justify-content:center; width:100%; padding:24px; }
+    .card { width:100%; max-width:520px; background:var(--card); padding:32px; border-radius:14px;
+            box-shadow:0 12px 40px rgba(0,0,0,.4); }
+    h1 { margin:0 0 4px; font-size:22px; }
+    p.sub { margin:0 0 22px; color:var(--muted); font-size:14px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:14px 0 6px; }
+    input { width:100%; padding:11px 12px; border-radius:8px; border:1px solid #2c3358;
+            background:#12152a; color:var(--text); font-size:14px; }
+    input:focus { outline:none; border-color:var(--accent); }
+    button { width:100%; margin-top:20px; padding:12px; border:0; border-radius:8px; cursor:pointer;
+             background:var(--accent); color:#fff; font-size:15px; font-weight:600; }
+    button:disabled { opacity:.6; cursor:default; }
+    .result { margin-top:22px; padding:14px; border-radius:8px; background:#12152a; display:none; }
+    .result.show { display:block; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .row a { flex:1; color:var(--accent); word-break:break-all; text-decoration:none; }
+    .copy { width:auto; margin:0; padding:8px 12px; font-size:13px; }
+    .err { color:var(--err); margin-top:14px; font-size:14px; min-height:18px; }
+  </style>
+</head>
+<body>
+  <div class="brandbar">
+    <div class="brand">
+      <!-- Swap this SVG for the real Charles Schwab logo asset when available. -->
+      <svg class="logo" viewBox="0 0 190 30" xmlns="http://www.w3.org/2000/svg" aria-label="brand logo">
+        <rect x="0" y="6" width="18" height="18" rx="3" fill="#00a0df"/>
+        <text x="26" y="21" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#e8ebff">Charles Schwab</text>
+      </svg>
+    </div>
+    <div class="nav">
+      <a href="/" class="active">Shorten URL</a>
+      <a href="/dashboard">Dashboard</a>
+    </div>
+  </div>
+
+  <div class="stage">
+  <div class="card">
+    <h1>Shorten a URL</h1>
+    <p class="sub">Paste a long link and get a short one back.</p>
+
+    <label for="url">Long URL</label>
+    <input id="url" type="url" placeholder="https://example.com/very/long/path" />
+
+    <label for="alias">Custom alias (optional, max 16 chars)</label>
+    <input id="alias" type="text" maxlength="16" placeholder="my-link" />
+
+    <label for="expiry">Expires after (days, optional &mdash; blank = never)</label>
+    <input id="expiry" type="number" min="1" placeholder="e.g. 30" />
+
+    <label for="apikey">Created by</label>
+    <input id="apikey" type="text" value="demo" placeholder="your name or email" />
+
+    <button id="go">Shorten URL</button>
+
+    <div class="err" id="err"></div>
+
+    <div class="result" id="result">
+      <label>Short URL</label>
+      <div class="row">
+        <a id="short" href="#" target="_blank" rel="noopener"></a>
+        <button class="copy" id="copy">Copy</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const btn = $("go"), err = $("err"), result = $("result"), shortEl = $("short");
+
+    async function shorten() {
+      err.textContent = "";
+      result.classList.remove("show");
+      const url = $("url").value.trim();
+      const alias = $("alias").value.trim();
+      const expiry = $("expiry").value.trim();
+      const apiKey = $("apikey").value.trim();
+      if (!url) { err.textContent = "Please enter a URL."; return; }
+
+      const body = { url };
+      if (alias) body.custom_url = alias;
+      if (expiry) body.expiry_days = parseInt(expiry, 10);
+
+      btn.disabled = true; btn.textContent = "Shortening…";
+      try {
+        const res = await fetch("/api/create", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-api-key": apiKey || "demo" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          err.textContent = data.detail
+            ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail))
+            : `Error ${res.status}`;
+          return;
+        }
+        shortEl.textContent = data.short_url;
+        shortEl.href = data.short_url;
+        result.classList.add("show");
+      } catch (e) {
+        err.textContent = "Network error: " + e.message;
+      } finally {
+        btn.disabled = false; btn.textContent = "Shorten URL";
+      }
+    }
+
+    btn.addEventListener("click", shorten);
+    $("url").addEventListener("keydown", (e) => { if (e.key === "Enter") shorten(); });
+    $("alias").addEventListener("keydown", (e) => { if (e.key === "Enter") shorten(); });
+    $("expiry").addEventListener("keydown", (e) => { if (e.key === "Enter") shorten(); });
+    $("copy").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(shortEl.textContent);
+      const c = $("copy"); c.textContent = "Copied"; setTimeout(() => (c.textContent = "Copy"), 1200);
+    });
+  </script>
+</body>
+</html>

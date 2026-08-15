@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard · Link Shortener</title>
+  <style>
+    :root { --bg:#0f1220; --card:#1b1f36; --accent:#00a0df; --text:#e8ebff; --muted:#9aa3c7; --err:#ff6b6b; --ok:#3ecf8e; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:system-ui,Segoe UI,Roboto,sans-serif;
+           background:var(--bg); color:var(--text); }
+    .brandbar { display:flex; align-items:center; justify-content:space-between;
+                padding:16px 28px; border-bottom:1px solid #2c3358; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand .logo { height:30px; width:auto; }
+    .brand .name { font-size:16px; font-weight:700; letter-spacing:.3px; }
+    .nav a { color:var(--muted); text-decoration:none; font-size:14px; margin-left:18px; }
+    .nav a:hover, .nav a.active { color:var(--accent); }
+    .wrap { max-width:1000px; margin:0 auto; padding:28px; }
+    h1 { font-size:20px; margin:0 0 20px; }
+    h2 { font-size:16px; margin:28px 0 14px; color:var(--muted); }
+    .cards { display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+    .stat { flex:1; min-width:160px; background:var(--card); border-radius:12px; padding:20px 22px; }
+    .stat .k { color:var(--muted); font-size:13px; }
+    .stat .v { font-size:28px; font-weight:700; margin-top:6px; }
+    table { width:100%; border-collapse:collapse; background:var(--card); border-radius:12px; overflow:hidden; }
+    th, td { text-align:left; padding:12px 14px; font-size:14px; border-bottom:1px solid #262b47; }
+    th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+    tr:last-child td { border-bottom:0; }
+    td.code { font-family:ui-monospace,Consolas,monospace; color:var(--accent); }
+    td.url { color:var(--muted); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .pill { padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+    .pill.active { background:rgba(62,207,142,.15); color:var(--ok); }
+    .pill.expired { background:rgba(255,107,107,.15); color:var(--err); }
+    .empty { color:var(--muted); padding:40px; text-align:center; }
+    .btn { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:9px 16px;
+           font-size:14px; font-weight:600; cursor:pointer; }
+    .btn.ghost { background:var(--card); color:var(--muted); border:1px solid #2c3358; }
+    .btn.ghost:hover { color:var(--accent); }
+    .refresh { float:right; }
+
+    /* Search + detail */
+    .search { background:var(--card); border-radius:12px; padding:20px 22px; margin-bottom:8px; }
+    .search .row { display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+    .search .field { display:flex; flex-direction:column; }
+    .search label { font-size:12px; color:var(--muted); margin-bottom:5px; }
+    .search input { padding:9px 11px; border-radius:8px; border:1px solid #2c3358;
+                    background:#12152a; color:var(--text); font-size:14px; }
+    .search input:focus { outline:none; border-color:var(--accent); }
+    .search .grow { flex:1; min-width:160px; }
+    .detail { display:none; }
+    .detail.show { display:block; }
+    .metagrid { display:flex; gap:16px; flex-wrap:wrap; margin:14px 0 4px; }
+    .meta { background:var(--card); border-radius:10px; padding:14px 16px; min-width:150px; }
+    .meta .k { color:var(--muted); font-size:12px; }
+    .meta .v { font-size:16px; font-weight:600; margin-top:4px; }
+    .chartbox { background:var(--card); border-radius:12px; padding:18px; margin-top:8px; }
+    svg.chart { width:100%; height:200px; display:block; }
+    .searchErr { color:var(--err); font-size:14px; margin-top:12px; min-height:16px; }
+  </style>
+</head>
+<body>
+  <div class="brandbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 190 30" xmlns="http://www.w3.org/2000/svg" aria-label="brand logo">
+        <rect x="0" y="6" width="18" height="18" rx="3" fill="#00a0df"/>
+        <text x="26" y="21" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#e8ebff">Charles Schwab</text>
+      </svg>
+    </div>
+    <div class="nav">
+      <a href="/">Shorten URL</a>
+      <a href="/dashboard" class="active">Dashboard</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h1>Analytics <button class="btn ghost refresh" id="refresh">Refresh</button></h1>
+
+    <div class="cards">
+      <div class="stat"><div class="k">Total Links</div><div class="v" id="totalLinks">–</div></div>
+      <div class="stat"><div class="k">Total Clicks</div><div class="v" id="totalClicks">–</div></div>
+    </div>
+
+    <h2>Search a link</h2>
+    <div class="search">
+      <div class="row">
+        <div class="field grow">
+          <label for="q">Short code</label>
+          <input id="q" type="text" placeholder="e.g. medium" />
+        </div>
+        <button class="btn" id="searchBtn">Search</button>
+        <button class="btn ghost" id="clearBtn">Clear</button>
+      </div>
+      <div class="searchErr" id="searchErr"></div>
+    </div>
+
+    <div class="detail" id="detail">
+      <div class="metagrid">
+        <div class="meta"><div class="k">Total clicks</div><div class="v" id="dTotal">–</div></div>
+        <div class="meta"><div class="k">Created by</div><div class="v" id="dBy">–</div></div>
+        <div class="meta"><div class="k">Created</div><div class="v" id="dCreated">–</div></div>
+        <div class="meta"><div class="k">Expires</div><div class="v" id="dExpires">–</div></div>
+        <div class="meta"><div class="k">Last click</div><div class="v" id="dLast">–</div></div>
+        <div class="meta"><div class="k">Status</div><div class="v" id="dStatus">–</div></div>
+      </div>
+
+      <div class="chartbox">
+        <div style="color:var(--muted);font-size:13px;margin-bottom:8px;">Clicks over time</div>
+        <svg class="chart" id="chart" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+      </div>
+
+      <h2>Recent clicks</h2>
+      <table>
+        <thead><tr><th>Time (UTC)</th><th>Device</th><th>Browser</th><th>OS</th><th>Referer</th></tr></thead>
+        <tbody id="recent"></tbody>
+      </table>
+    </div>
+
+    <h2>All links</h2>
+    <table>
+      <thead>
+        <tr><th>Short code</th><th>Destination</th><th>Created by</th><th>Clicks</th><th>Status</th><th>Expires</th><th>Top device</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none;">No links yet. Create one on the Shorten page.</div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    // Build a <td> with text set via textContent so values are never parsed as
+    // HTML. Prevents stored XSS from user-controlled fields (url, referer, etc.).
+    function cell(text, className) {
+      const td = document.createElement("td");
+      if (className) td.className = className;
+      td.textContent = text;
+      return td;
+    }
+
+    function fmtDate(epoch) {
+      if (!epoch) return "Never";
+      return new Date(epoch * 1000).toISOString().slice(0, 10);
+    }
+    function fmtDateTime(iso) {
+      if (!iso) return "–";
+      return iso.replace("T", " ").slice(0, 19);
+    }
+
+    async function loadOverview() {
+      let data;
+      try {
+        data = await (await fetch("/api/stats")).json();
+      } catch (e) {
+        $("empty").style.display = "block";
+        $("empty").textContent = "Could not load stats: " + e.message;
+        return;
+      }
+      $("totalLinks").textContent = data.total_links;
+      $("totalClicks").textContent = data.total_clicks;
+
+      const rows = $("rows");
+      rows.innerHTML = "";
+      if (!data.links.length) { $("empty").style.display = "block"; return; }
+      $("empty").style.display = "none";
+      for (const l of data.links) {
+        const tr = document.createElement("tr");
+
+        const codeTd = cell(l.code, "code");
+        codeTd.style.cursor = "pointer";
+        codeTd.addEventListener("click", () => { $("q").value = l.code; runSearch(); });
+        tr.appendChild(codeTd);
+
+        const urlTd = cell(l.long_url || "", "url");
+        urlTd.title = l.long_url || "";
+        tr.appendChild(urlTd);
+
+        tr.appendChild(cell(l.created_by || "–"));
+        tr.appendChild(cell(String(l.clicks)));
+
+        const statusTd = document.createElement("td");
+        const pill = document.createElement("span");
+        pill.className = "pill " + (l.status === "expired" ? "expired" : "active");
+        pill.textContent = l.status;
+        statusTd.appendChild(pill);
+        tr.appendChild(statusTd);
+
+        tr.appendChild(cell(fmtDate(l.expires_at)));
+        tr.appendChild(cell(l.top_device || "–"));
+        rows.appendChild(tr);
+      }
+    }
+
+    function drawChart(daily) {
+      const svg = $("chart");
+      svg.innerHTML = "";
+      const W = 600, H = 200, pad = 24;
+      if (!daily.length) {
+        svg.innerHTML = `<text x="${W/2}" y="${H/2}" fill="#9aa3c7" font-size="13" text-anchor="middle">No clicks in range</text>`;
+        return;
+      }
+      const max = Math.max(...daily.map(d => d.clicks), 1);
+      const n = daily.length;
+      const bw = (W - pad * 2) / n;
+      let bars = "";
+      daily.forEach((d, i) => {
+        const h = (d.clicks / max) * (H - pad * 2);
+        const x = pad + i * bw + bw * 0.15;
+        const y = H - pad - h;
+        bars += `<rect x="${x}" y="${y}" width="${bw * 0.7}" height="${h}" rx="2" fill="#00a0df"><title>${d.date}: ${d.clicks}</title></rect>`;
+        if (n <= 14) bars += `<text x="${x + bw*0.35}" y="${H - pad + 12}" fill="#9aa3c7" font-size="9" text-anchor="middle">${d.date.slice(5)}</text>`;
+      });
+      bars += `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#2c3358"/>`;
+      svg.innerHTML = bars;
+    }
+
+    async function runSearch() {
+      $("searchErr").textContent = "";
+      const code = $("q").value.trim();
+      if (!code) { $("searchErr").textContent = "Enter a short code."; return; }
+      const url = "/api/stats/" + encodeURIComponent(code);
+
+      let d;
+      try {
+        const res = await fetch(url);
+        if (res.status === 404) { $("searchErr").textContent = "No link found for '" + code + "'."; $("detail").classList.remove("show"); return; }
+        d = await res.json();
+      } catch (e) {
+        $("searchErr").textContent = "Search failed: " + e.message; return;
+      }
+
+      $("dTotal").textContent = d.clicks;
+      $("dBy").textContent = d.created_by || "–";
+      $("dCreated").textContent = d.created_at ? fmtDateTime(d.created_at) : "–";
+      $("dExpires").textContent = fmtDate(d.expires_at);
+      $("dLast").textContent = fmtDateTime(d.last_click);
+      $("dStatus").textContent = d.status;
+
+      drawChart(d.daily || []);
+
+      const recent = $("recent");
+      recent.innerHTML = "";
+      (d.recent || []).forEach(c => {
+        const tr = document.createElement("tr");
+        tr.appendChild(cell(fmtDateTime(c.ts)));
+        tr.appendChild(cell(c.device || "–"));
+        tr.appendChild(cell(c.browser || "–"));
+        tr.appendChild(cell(c.os || "–"));
+        tr.appendChild(cell(c.referer || "direct", "url"));
+        recent.appendChild(tr);
+      });
+      $("detail").classList.add("show");
+    }
+
+    function clearSearch() {
+      $("q").value = "";
+      $("searchErr").textContent = "";
+      $("detail").classList.remove("show");
+      $("q").focus();
+    }
+
+    $("refresh").addEventListener("click", loadOverview);
+    $("searchBtn").addEventListener("click", runSearch);
+    $("clearBtn").addEventListener("click", clearSearch);
+    $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
+    loadOverview();
+  </script>
+</body>
+</html>
