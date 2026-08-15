@@ -36,9 +36,9 @@ User -> Long URL -> App (Database) -> Short URL -> User
 ## Challenges anticipated while working on prototype
 - The system should protect the application from excessive or abnormal traffic through rate limiting.
 - Frequently accessed URLs should be served efficiently to reduce load on the database.
-- The system should provide analytics/visibility into URL usage and performance.
-– Duplicate links / alias conflicts
-– Application should be safer from bot attacks - Without any limit, someone could call the create API repeatedly and generate a very large number of URLs.
+- The system should provide analytics/visibility into URL usage and performance
+- Duplicate links / alias conflicts
+- Application should be safer from bot attacks - Without any limit, someone could call the create API repeatedly and generate a very large number of URLs.
 - We had no analytics
 
 ## The original application could shorten URLs, but we could not answer basic business questions such as:
