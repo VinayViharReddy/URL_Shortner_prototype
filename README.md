@@ -12,12 +12,12 @@ User -> Long URL -> App (Database) -> Short URL -> User
 ## Assumed Decisions
 
 - Do we need to set up expiry, or will the shortened URLs remain in the system?
-  **We should have functionality to set an expiry for the shortened URL.** 
+ -> **We should have functionality to set an expiry for the shortened URL.** 
 - Can a customer create a Tiny URL of his/her choice, or will it always be auto-generated?
-  **This should be flexible. The customer should be able to use either an auto-generated short code or a custom short code.**
+  -> **This should be flexible. The customer should be able to use either an auto-generated short code or a custom short code.**
 - If the user is allowed to create custom shortened links, what would be the maximum size of the custom URL?
-  **The maximum character limit should be 16 characters.**
-- How many requests can be received on Average
+  -> **The maximum character limit should be 16 characters.**
+- How many requests can be received on Average ? -> 
   **Average 1M requ/month**
 
 ## Functional Requirements
