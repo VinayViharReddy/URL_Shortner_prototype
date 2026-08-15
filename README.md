@@ -181,22 +181,20 @@ Write path (`POST /api/create`) is limited per **API key** (the abuse/cost vecto
 
 ## Run locally (DynamoDB Local)
 
-```bash
-# 1. deps
-py -3 -m pip install -r requirements.txt
+#  deps
+- py -3 -m pip install -r requirements.txt
 
-# 2. local DynamoDB (Docker)
-docker run -d -p 8000:8000 amazon/dynamodb-local
+#  local DynamoDB (Docker)
+- docker run -d -p 8000:8000 amazon/dynamodb-local
 
-# 3. env
-export DYNAMODB_ENDPOINT=http://localhost:8000
-export AWS_REGION=us-east-1
-export AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local
+# env
+- export DYNAMODB_ENDPOINT=http://localhost:8000
+- export AWS_REGION=us-east-1
+- export AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local
 
-# 4. tables + server
-py -3 create_tables.py
-py -3 -m uvicorn app.main:app --reload --port 9000
-```
+## tables + App server
+- py -3 create_tables.py
+- py -3 -m uvicorn app.main:app --reload --port 9000
 
 Optional cache/analytics/limits:
 ```bash
