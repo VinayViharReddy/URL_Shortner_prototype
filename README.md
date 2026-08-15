@@ -3,17 +3,6 @@
 FastAPI + DynamoDB implementation of the scalable URL-shortener design
 (base62 counter code generation, cache-aside read path, analytics tap).
 
-## Layout — maps to the design diagram
-
-| File | Diagram box |
-|------|-------------|
-| `app/main.py` | Webservers (behind a load balancer) |
-| `app/repository.py` | Sharded Database (DynamoDB) + atomic counter |
-| `app/cache.py` | Cache (Redis, cache-aside) |
-| `app/analytics.py` | Analytics (DynamoDB `Clicks` table; logs when disabled) |
-| `app/ratelimit.py` | Write-path rate limiting (Redis, in-memory fallback) |
-| `app/base62.py` | counter <-> short code |
-
 ## What was the original requirement?
 
 The original requirement: Take a long URL and give the user a shorter URL that should be working.
@@ -23,11 +12,13 @@ User -> Long URL -> App (Database) -> Short URL -> User
 ## Assumed Decisions
 
 - Do we need to set up expiry, or will the shortened URLs remain in the system?
-  We should have functionality to set an expiry for the shortened URL.
+  **We should have functionality to set an expiry for the shortened URL.** 
 - Can a customer create a Tiny URL of his/her choice, or will it always be auto-generated?
-  This should be flexible. The customer should be able to use either an auto-generated short code or a custom short code.
+  **This should be flexible. The customer should be able to use either an auto-generated short code or a custom short code.**
 - If the user is allowed to create custom shortened links, what would be the maximum size of the custom URL?
-  The maximum character limit should be 16 characters.
+  **The maximum character limit should be 16 characters.**
+- How many requests can be received on Average
+  **Average 1M requ/month**
 
 ## Functional Requirements
 - Service should be able to create shortened URLs/links against a long URL.
@@ -135,6 +126,16 @@ The Final improved prototype became:
                 Dashboard
 
 
+## Layout — maps to the design diagram
+
+| File | Diagram box |
+|------|-------------|
+| `app/main.py` | Webservers (behind a load balancer) |
+| `app/repository.py` | Sharded Database (DynamoDB) + atomic counter |
+| `app/cache.py` | Cache (Redis, cache-aside) |
+| `app/analytics.py` | Analytics (DynamoDB `Clicks` table; logs when disabled) |
+| `app/ratelimit.py` | Write-path rate limiting (Redis, in-memory fallback) |
+| `app/base62.py` | counter <-> short code |
 
 ## Running the application locally
 
