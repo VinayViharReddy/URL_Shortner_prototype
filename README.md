@@ -14,57 +14,6 @@ FastAPI + DynamoDB implementation of the scalable URL-shortener design
 | `app/ratelimit.py` | Write-path rate limiting (Redis, in-memory fallback) |
 | `app/base62.py` | counter <-> short code |
 
-## Run locally (DynamoDB Local)
-
-```bash
-# 1. deps
-py -3 -m pip install -r requirements.txt
-
-# 2. local DynamoDB (Docker)
-docker run -d -p 8000:8000 amazon/dynamodb-local
-
-# 3. env
-export DYNAMODB_ENDPOINT=http://localhost:8000
-export AWS_REGION=us-east-1
-export AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local
-
-# 4. tables + server
-py -3 create_tables.py
-py -3 -m uvicorn app.main:app --reload --port 9000
-```
-
-Optional cache/analytics/limits:
-```bash
-export REDIS_URL=redis://localhost:6379/0   # enables cache-aside AND shared rate limiting
-export ANALYTICS_SINK=dynamodb              # default; set to anything else to log-only
-export RATE_LIMIT_PER_MIN=60                # write-path limit per API key (0 disables)
-```
-
-## Use
-
-```bash
-# create (generated code)
-curl -X POST localhost:9000/api/create \
-  -H 'x-api-key: demo' -H 'content-type: application/json' \
-  -d '{"url":"https://medium.com/@sandeep4.verma"}'
-
-# create (custom alias, max 16 chars)
-curl -X POST localhost:9000/api/create \
-  -H 'x-api-key: demo' -H 'content-type: application/json' \
-  -d '{"url":"https://example.com","custom_url":"my-link"}'
-
-# redirect (302)
-curl -i localhost:9000/1L9zO9P
-```
-
-## Scaling notes
-- **Web tier**: stateless — scale replicas behind an ALB/round-robin LB.
-- **Counter**: DynamoDB `ADD` is atomic, so concurrent replicas never collide; no read-modify-write race.
-- **DB partitioning**: `code` is the partition key (hashed) — even distribution, native sharding.
-- **Reads**: cache-aside absorbs the 200:1 read skew; on miss, DB read backfills the cache.
-- **Analytics**: 302 (not 301) guarantees every click hits the web tier, which taps the event stream.
-
-
 ## What was the original requirement?
 
 The original requirement: Take a long URL and give the user a shorter URL that should be working.
@@ -223,14 +172,60 @@ We added:
 - Redis caching
 - URL expiry
 - Click analytics
-
-## Business-facing analytics dashboard
-
-Better click counting for large click volumes
+- Business-facing analytics dashboard -> Better click counting for large click volumes
 
 ## Rate limiting
 
 Write path (`POST /api/create`) is limited per **API key** (the abuse/cost vector); redirects are not limited in-app — that belongs at the edge. The counter is **Redis-backed when `REDIS_URL` is set**, so the limit holds across all stateless replicas (atomic `INCR` + `EXPIRE`, fixed-window). Without Redis it falls back to a **per-process in-memory** counter — correct for a single replica, but N replicas would allow N× the limit. Exceeding the limit returns `429` with a `Retry-After` header.
 
+## Run locally (DynamoDB Local)
+
+```bash
+# 1. deps
+py -3 -m pip install -r requirements.txt
+
+# 2. local DynamoDB (Docker)
+docker run -d -p 8000:8000 amazon/dynamodb-local
+
+# 3. env
+export DYNAMODB_ENDPOINT=http://localhost:8000
+export AWS_REGION=us-east-1
+export AWS_ACCESS_KEY_ID=local AWS_SECRET_ACCESS_KEY=local
+
+# 4. tables + server
+py -3 create_tables.py
+py -3 -m uvicorn app.main:app --reload --port 9000
+```
+
+Optional cache/analytics/limits:
+```bash
+export REDIS_URL=redis://localhost:6379/0   # enables cache-aside AND shared rate limiting
+export ANALYTICS_SINK=dynamodb              # default; set to anything else to log-only
+export RATE_LIMIT_PER_MIN=60                # write-path limit per API key (0 disables)
+```
+
+## Use
+
+```bash
+# create (generated code)
+curl -X POST localhost:9000/api/create \
+  -H 'x-api-key: demo' -H 'content-type: application/json' \
+  -d '{"url":"https://medium.com/@sandeep4.verma"}'
+
+# create (custom alias, max 16 chars)
+curl -X POST localhost:9000/api/create \
+  -H 'x-api-key: demo' -H 'content-type: application/json' \
+  -d '{"url":"https://example.com","custom_url":"my-link"}'
+
+# redirect (302)
+curl -i localhost:9000/1L9zO9P
+```
+
+## Scaling notes
+- **Web tier**: stateless — scale replicas behind an ALB/round-robin LB.
+- **Counter**: DynamoDB `ADD` is atomic, so concurrent replicas never collide; no read-modify-write race.
+- **DB partitioning**: `code` is the partition key (hashed) — even distribution, native sharding.
+- **Reads**: cache-aside absorbs the 200:1 read skew; on miss, DB read backfills the cache.
+- **Analytics**: 302 (not 301) guarantees every click hits the web tier, which taps the event stream.
 
 - **Cache invalidation.** Cache now carries expiry so expired links can't redirect from cache, but there's no active invalidation on URL update/delete — TTL-based only.
