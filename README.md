@@ -7,6 +7,11 @@ Install dependencies:
 - python3 -m uvicorn app.main:app --reload --port 8080. - **To Run the App**
 - To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
 
+<img width="1141" height="761" alt="image" src="https://github.com/user-attachments/assets/e74ae5fd-4ce2-4892-a58d-83245433768e" />
+
+
+
+
 ## Layout — maps to the design diagram
 
 | File | Diagram box | explanation |
