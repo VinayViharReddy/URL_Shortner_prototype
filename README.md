@@ -29,7 +29,7 @@ Install dependencies:
 - To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
 
 
-## NORTH START
+## NORTH STAR (Production Grade)
 <img width="1536" height="1024" alt=" Image Aug 17, 2026, 03_14_15 AM" src="https://github.com/user-attachments/assets/c086f362-68b3-4ada-aefc-65607efc2a63" />
 
 
