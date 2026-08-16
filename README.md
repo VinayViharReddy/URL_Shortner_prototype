@@ -28,6 +28,15 @@ Install dependencies:
 - python3 -m uvicorn app.main:app --reload --port 8080. - **To Run the App**
 - To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
 
+## Trade Offs
+- ## Trade-offs
+
+| Area | Trade-off |
+|---|---|
+| **Redis Cache** | Redis is wired into the application, but the switch is **off by default** in the prototype. It can be enabled when running Redis locally or when deploying to ECS with ElastiCache. |
+| **DynamoDB** | Chosen for scalability and availability, with more design complexity than a simple relational database. |
+| **Analytics** | Added for better link-performance visibility, but click recording is currently synchronous; at higher scale, it should move to an asynchronous queue by adding Queue mechanism (SQS) |
+| **Rate Limiting** | Implemented at the application level for the prototype; in production, primary protection can move to WAF/API Gateway. |
 
 ## NORTH STAR (Production Grade)
 <img width="1536" height="1024" alt=" Image Aug 17, 2026, 03_14_15 AM" src="https://github.com/user-attachments/assets/c086f362-68b3-4ada-aefc-65607efc2a63" />
