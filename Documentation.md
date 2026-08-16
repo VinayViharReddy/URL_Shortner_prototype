@@ -1,7 +1,6 @@
 # URL Shortener
 
-FastAPI + DynamoDB implementation of the scalable URL-shortener design
-(base62 counter code generation, cache-aside read path, analytics tap).
+Prototype -> FastAPI + DynamoDB implementation of the scalable URL-shortener design (base62 counter code generation, cache-aside read path, analytics tap)
 
 ## What was the original requirement?
 
