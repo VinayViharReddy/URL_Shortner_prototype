@@ -65,10 +65,8 @@ The dashboard should show information such as:
 This helps us move from: "Does the URL shortener work?"  to: "How are people using the links we created?"
 This is important for business conversion analysis because it gives us a way to understand which links are actually being used and how much traffic they generate.
 **The final level of the prototype  help a business understand which links or campaigns are performing better**
-Note: The current prototype measures clicks and usage. A full business-conversion system would additionally connect clicks to downstream business events such as sign-ups, purchases, or completed actions.
 
-
-## Improvement - support for URL expiry.
+## Improvement - URL expiry Handling
 The application checks the expiry time itself before redirecting. This is important because database cleanup may happen later than the actual expiry time.
 We also store the expiry information in the Redis cache, so an expired link cannot continue working just because it is still cached.
 
@@ -84,47 +82,6 @@ We also store the expiry information in the Redis cache, so an expired link cann
 - Dashboard – gives a simple view of links, clicks, and trends.
 - Safer dashboard rendering – reduces the risk of stored XSS.
 - Correct click pagination – prevents undercounting when a link receives many clicks.
-
-
-The Final improved prototype became:
-
-                 +----------------+
-                 |      User      |
-                 +--------+-------+
-                          |
-                     Long URL
-                          |
-                          v
-                 +----------------+
-                 |      App       |
-                 +---+--------+---+
-                     |        |
-                     |        +----------> Rate Limiter
-                     |
-             +-------+-------+
-             |               |
-             v               v
-          DynamoDB         Redis
-             |               |
-             |               |
-             +-------+-------+
-                     |
-                     v
-                 Short URL
-                     |
-                     v
-                   User
-                     |
-                     v
-                Click event
-                     |
-                     v
-                 Analytics
-                     |
-                     v
-                Dashboard
-
-
 
 ## Final Goal:
 - During the prototype, we looked at what could go wrong in a real application and improved it step by step.
