@@ -29,7 +29,6 @@ Install dependencies:
 - To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
 
 ## Trade Offs
-- ## Trade-offs
 
 | Area | Trade-off |
 |---|---|
