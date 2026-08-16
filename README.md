@@ -1,16 +1,6 @@
-## Running the application locally
-
-Install dependencies:
-- aws configure -> for setting up Dynamodb
-- python3 -m pip install -r requirements.txt - **To Install Dependencies**
-- python3 create_tables.py - **Start DynamoDB Local if required - We created tables in AWS, and start the application**
-- python3 -m uvicorn app.main:app --reload --port 8080. - **To Run the App**
-- To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
+## Prototype Architecture
 
 <img width="1141" height="761" alt="image" src="https://github.com/user-attachments/assets/e74ae5fd-4ce2-4892-a58d-83245433768e" />
-
-
-
 
 ## Layout — maps to the design diagram
 
@@ -27,3 +17,19 @@ Install dependencies:
 | `static/index.html` | URL Creation UI | Frontend page where users enter the long URL and create a short URL. |
 | `static/dashboard.html` | Analytics Dashboard | Frontend dashboard used to view clicks and short-link performance. |
 | `requirements.txt` | Dependencies | Lists the Python packages required to run the application. |
+
+
+## Steps to Run Application Locally
+
+Install dependencies:
+- aws configure -> for setting up Dynamodb
+- python3 -m pip install -r requirements.txt - **To Install Dependencies**
+- python3 create_tables.py - **Start DynamoDB Local if required - We created tables in AWS, and start the application**
+- python3 -m uvicorn app.main:app --reload --port 8080. - **To Run the App**
+- To enable Redis locally   **export REDIS_URL=redis://localhost:6379/0 - Then restart the application.**
+
+
+
+
+
+
