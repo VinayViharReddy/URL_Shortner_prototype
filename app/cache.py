@@ -1,7 +1,7 @@
 """Cache-aside layer: the 'CACHE' box. Redis if configured, else no-op.
 
 Read path: check cache -> on miss, caller hits DB and backfills.
-This is what shields the DB from the 200:1 read/write skew (8000 reads/s).
+This is what shields the DB from the 200:1 read/write skew (8000 reads/s)..
 
 Cached value is "<expiresAt>|<longUrl>" so the cache-hit path can enforce
 expiry itself. Without this, an expired-but-still-cached link would keep
