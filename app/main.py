@@ -1,5 +1,4 @@
 """FastAPI web tier. Run many replicas behind a load balancer (ALB / round-robin).
-
 Endpoints mirror the article:
   POST /api/create   -> create short URL (write path)
   GET  /{code}       -> 302 redirect to long URL (read path, cache-aside + analytics)
