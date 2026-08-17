@@ -7,7 +7,7 @@ Two concerns handled here:
 DynamoDB's UpdateItem ADD is atomic, giving us collision-free counter values
 across concurrent web servers without a read-modify-write race. Partitioning by
 `code` distributes reads/writes evenly (hashed partition key), which is how this
-scales horizontally — the 'sharding' is native to DynamoDB.
+scales horizontally — The 'sharding' is native to DynamoDB.
 """
 
 from datetime import datetime, timedelta, timezone
