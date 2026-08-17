@@ -1,5 +1,4 @@
 """Analytics tap: the 'Analytics' box. Every 302 redirect persists a click record.
-
 We store no IP and no geo (GDPR: user chose to drop location tracking). Each click
 records only time + device/browser/OS (parsed from the User-Agent) + referer.
 """
