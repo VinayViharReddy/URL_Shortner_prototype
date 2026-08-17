@@ -13,7 +13,7 @@ Fixed-window counter, keyed by API key. Two backends, chosen at runtime:
 
 In real production the FIRST line of defense is edge throttling (API Gateway
 usage plans, WAF rate-based rules, ALB) so abusive traffic never reaches compute
-or incurs DynamoDB cost. This app-level limiter is defense-in-depth.
+or incurs DynamoDB cost. This app-level limiter is defense-in-depth..
 """
 
 import time
