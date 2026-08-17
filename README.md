@@ -41,6 +41,52 @@ Install dependencies:
 <img width="1536" height="1024" alt=" Image Aug 17, 2026, 03_14_15 AM" src="https://github.com/user-attachments/assets/c086f362-68b3-4ada-aefc-65607efc2a63" />
 
 
+## Test Cases / Functional Validation
+
+| Test Case | Expected Result | Status |
+|---|---|---|
+| Create URL with valid long URL | Short URL is generated successfully | ✅ Supported |
+| Create URL with custom short code | User-defined short code is created | ✅ Supported |
+| Create URL without custom code | Short code is generated automatically using Base62 | ✅ Supported |
+| Custom short code greater than 16 characters | Request is rejected | ✅ Validated |
+| Custom short code with invalid characters | Request is rejected | ✅ Validated |
+| Duplicate custom short code | Request returns `409 Conflict` | ✅ Handled |
+| Expiry not provided | Short URL remains active | ✅ Supported |
+| Expiry provided | Short URL expires after configured days | ✅ Supported |
+| Access expired short URL | Returns `410 Gone` | ✅ Handled |
+| Access non-existing short URL | Returns `404 Not Found` | ✅ Handled |
+| Access valid short URL | Redirects to original URL using `302` | ✅ Supported |
+| Redis cache hit | URL is served from Redis without DynamoDB lookup | ✅ Supported |
+| Redis cache miss | Reads URL from DynamoDB and backfills Redis | ✅ Supported |
+| Expired URL available in Redis | Expiry is checked and redirect is blocked | ✅ Handled |
+| Excessive URL creation requests | Returns `429 Too Many Requests` | ✅ Supported |
+| Rate limit exceeded | `Retry-After` header is returned | ✅ Supported |
+| Record link click | Click information is recorded for analytics | ✅ Supported |
+| Browser / device / referer tracking | Analytics captures available request details | ✅ Supported |
+| Dashboard overview | Shows total links, clicks and link-level statistics | ✅ Supported |
+| Individual link analytics | Shows clicks, daily data and recent clicks | ✅ Supported |
+| Health check | `/healthz` returns application health status | ✅ Supported |
+| Reserved application paths | Paths such as `/dashboard` are not treated as short codes | ✅ Handled |
+| Invalid request URL | Request is rejected by Pydantic validation | ✅ Validated |
+
+## Automation Test Coverage
+
+> The current prototype does **not yet contain a formal `pytest` test suite**. The above scenarios represent the functional behavior implemented and validated through the application flow.
+
+### Recommended Automated Tests
+
+| Test Area | Test Scenario |
+|---|---|
+| Base62 | Encode/decode round-trip validation |
+| URL Creation | Valid URL, invalid URL and missing fields |
+| Custom Alias | 16-character limit, invalid characters and duplicate alias |
+| Generated Code | Concurrent URL creation and uniqueness |
+| Expiry | Active URL, expired URL and expiry boundary |
+| Redirect | Valid URL, 404 and 410 responses |
+| Redis | Cache hit, cache miss and Redis failure fallback |
+| Rate Limiting | Requests within limit and requests exceeding limit |
+| Analytics | Click recording and analytics failure handling |
+| Dashboard | Correct click counts and link statistics |
 
 
 
