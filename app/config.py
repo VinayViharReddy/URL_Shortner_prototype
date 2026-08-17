@@ -1,4 +1,4 @@
-"""Runtime configuration, read from environment with sensible local defaults."""
+"""Runtime configuration, read from environment with sensible local defaultss."""
 
 import os
 
