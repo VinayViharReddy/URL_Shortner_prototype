@@ -1,7 +1,5 @@
 """One-time table setup. Works against DynamoDB Local or real AWS.
-
     python create_tables.py
-
 Uses the same env vars as the app (DYNAMODB_ENDPOINT, AWS_REGION, table names).
 """
 
